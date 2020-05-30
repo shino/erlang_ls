@@ -146,17 +146,17 @@ handle_info(_Request, State) ->
   {noreply, State}.
 
 -spec terminate(any(), state()) -> ok.
-terminate(normal, #{ config := #{on_complete := OnComplete}
+terminate(normal, #{ config := #{title := Title, on_complete := OnComplete}
                    , internal_state := InternalState
                    }) ->
-  lager:info("Background job completed. [pid=~p]", [self()]),
+  lager:info("Background job completed. [pid=~p] [title=~p]", [self(), Title]),
   OnComplete(InternalState),
   ok;
-terminate(Reason, #{ config := #{on_error := OnError}
+terminate(Reason, #{ config := #{title := Title, on_error := OnError}
                    , internal_state := InternalState
                    }) ->
-  lager:warning( "Background job aborted. [reason=~p] [pid=~p]"
-               , [Reason, self()]),
+  lager:warning( "Background job aborted. [reason=~p] [pid=~p]  [title=~p]"
+               , [Reason, self(), Title]),
   OnError(InternalState),
   ok.
 
