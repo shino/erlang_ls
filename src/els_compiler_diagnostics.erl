@@ -173,10 +173,15 @@ range(none) ->
 %%      a given document.
 -spec inclusion_range(string(), els_dt_document:item()) -> poi_range().
 inclusion_range(IncludePath, Document) ->
-  [Range|_] =
-    inclusion_range(IncludePath, Document, include) ++
-    inclusion_range(IncludePath, Document, include_lib),
-  Range.
+  lager:warning("IncludePath=~p", [IncludePath]),
+  case inclusion_range(IncludePath, Document, include) ++
+    inclusion_range(IncludePath, Document, include_lib) of
+    [] ->
+      #{from => {1,1}, to => {1,2}};
+    [Range|_] ->
+      lager:warning("Range=~p", [Range]),
+      Range
+  end.
 
 -spec inclusion_range( string()
                      , els_dt_document:item()
