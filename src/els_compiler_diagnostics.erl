@@ -254,8 +254,23 @@ compile_file(Path, Dependencies) ->
                       ]),
   Res = compile:file(Path, Opts),
   %% Restore things after compilation
-  [code:load_binary(Dependency, Filename, Binary)
+
+  [begin
+     case Dependency of
+       eunit_autoexport ->
+         ok;
+       eunit_striptests ->
+         ok;
+       lager_transform ->
+         ok;
+       _ ->
+         lager:warning("Dependency=~p, Filename=~p start", [Dependency, Filename]),
+         code:load_binary(Dependency, Filename, Binary),
+         lager:warning("Dependency=~p done", [Dependency])
+     end
+   end
    || {Dependency, Binary, Filename} <- Olds],
+  lager:warning("Path=~p", [Path]),
   Res.
 
 %% @doc Load a dependency, return the old version of the code (if any),
@@ -269,7 +284,18 @@ load_dependency(Module) ->
       Opts = lists:append([macro_options(), include_options(), [binary]]),
       case compile:file(Path, Opts) of
         {ok, Module, Binary} ->
-          code:load_binary(Module, atom_to_list(Module), Binary);
+          case Module of
+            eunit_autoexport ->
+              ok;
+            eunit_striptests ->
+              ok;
+            lager_transform ->
+              ok;
+            _ ->
+              lager:warning("Module=~p start", [Module]),
+              code:load_binary(Module, atom_to_list(Module), Binary),
+              lager:warning("Module=~p done", [Module])
+          end;
         Error ->
           lager:warning("Error compiling dependency [error=~w]", [Error])
       end;
