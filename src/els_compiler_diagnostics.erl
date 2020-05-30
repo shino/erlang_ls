@@ -148,7 +148,12 @@ diagnostic(_Path, MessagePath, Range, Document, Module, Desc0, Severity) ->
 -spec diagnostic(poi_range(), module(), string(), integer()) ->
         els_diagnostics:diagnostic().
 diagnostic(Range, Module, Desc, Severity) ->
-  Message0 = lists:flatten(Module:format_error(Desc)),
+  Message0 = case is_list(Desc) of
+               true ->
+                 lists:flatten(Desc);
+               false ->
+                 lists:flatten(Module:format_error(Desc))
+             end,
   Message  = els_utils:to_binary(Message0),
   #{ range    => els_protocol:range(Range)
    , message  => Message
